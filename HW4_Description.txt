@@ -1,0 +1,12 @@
+This project presents a data model for a service to add branch sites to a HQ site.
+Due to the limited time available, certain items such as firewall security policies have
+been ignored.  The data model is comprised of the following files:
+    
+     node.yml- Provides data specific to each host
+     network.yml- Provides data common to all nodes
+     services.yml- Provides data relating to the VPN service connectivity
+
+Two Ansible plays will be created.  The first takes the provided data and injects it into a 
+jinja2 template to generate the HQ firewall config.  The second play takes the provided data
+and injects it into a jinja2 template to create the branch site firewall configs.  As many
+branch sites as required can be added.
