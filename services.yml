@@ -1,0 +1,43 @@
+---
+PEERS: 
+  branch1:
+    local_lan: 192.168.101.0/24
+    pre_shared_key: secret
+    vpn_gateway_ip: 192.168.10.1
+    vpn_tunnel_interface: 0
+    HQ_vpn_tunnel_ip: 10.0.100.2/30
+    branch_vpn_tunnel_ip: 10.0.100.3/30
+
+  branch2:
+    local_lan: 192.168.111.0/24
+    pre_shared_key: secret
+    vpn_gateway_ip: 192.168.10.1
+    vpn_tunnel_interface: 1
+    HQ_vpn_tunnel_ip: 10.0.100.6/30
+    branch_vpn_tunnel_ip: 10.0.100.7/30
+
+  branch3:
+    local_lan: 192.168.121.0/24
+    pre_shared_key: secret
+    vpn_gateway_ip: 192.168.10.1
+    vpn_tunnel_interface: 2
+    HQ_vpn_tunnel_ip: 10.0.100.10/30
+    branch_vpn_tunnel_ip: 10.0.100.11/30
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

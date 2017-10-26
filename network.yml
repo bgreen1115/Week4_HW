@@ -1,0 +1,24 @@
+---
+domain_name: test.com
+wan_interface: ge-0/0/0
+lan_interface: ge-0/0/1
+root_password: secret
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

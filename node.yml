@@ -1,0 +1,50 @@
+---
+
+HQ:
+  hostname: HQ
+  wan_ip: 192.168.10.1
+  lan_ip: 192.168.1.1
+  mgmt_ip: 10.0.1.20
+  wan_gateway: 192.168.10.2
+  lan_gateway: 192.168.1.2
+  local_lan: 192.168.1.0
+
+PEERS: 
+  branch1:
+    hostname: branch1
+    wan_ip: 192.168.10.2
+    lan_ip: 192.168.101.1
+    mgmt_ip: 10.0.1.30
+    wan_gateway: 192.168.10.1
+
+  branch2:
+    hostname: branch2
+    wan_ip: 192.168.10.3
+    lan_ip: 192.168.111.1
+    mgmt_ip: 10.0.1.60
+    wan_gateway: 192.168.10.1
+
+  branch3:
+    hostname: branch3
+    wan_ip: 192.168.10.4
+    lan_ip: 192.168.121.1
+    mgmt_ip: 10.0.1.70
+    wan_gateway: 192.168.10.1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

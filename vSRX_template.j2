@@ -1,0 +1,220 @@
+system {
+    host-name {{HQ.hostname}};
+    domain-name {{domain_name}};
+    root-authentication {
+        plaintext-password {{root_password}};
+    }
+    scripts {
+        op {
+            file test.slax;
+        }
+    }
+    login {
+        user {{username}} {
+            uid 2000;
+            class super-user;
+            authentication {
+                plaintext-password {{user_password}};
+            }
+        }
+    }
+    services {
+        ssh {
+            root-login deny;
+
+            protocol-version v2;
+        }
+        netconf {
+            ssh;
+        }
+        web-management {
+            http {
+                interface fxp0.0;
+            }
+        }
+    }
+    syslog {
+        user * {
+            any emergency;
+        }
+        file messages {
+            any any;
+            authorization info;
+        }
+        file interactive-commands {
+            interactive-commands any;
+        }
+    }
+    license {
+        autoupdate {
+            url https://ae1.juniper.net/junos/key_retrieval;
+        }
+    }
+}
+security {
+    ike {
+        proposal ike_proposal {
+            authentication-method pre-shared-keys;
+            dh-group group5;
+            authentication-algorithm sha-256;
+            encryption-algorithm aes-256-cbc;
+            lifetime-seconds 28800;
+        }
+{% for branch in PEERS %}
+        policy ike-policy-{{branch}} {
+            mode main;
+            proposals ike_proposal;
+            pre-shared-key ascii-text "{{PEERS[branch].pre_shared_key}}";
+        }
+        gateway gateway-{{branch}} {
+            ike-policy ike-policy-{{branch}};
+            address {{PEERS[branch].vpn_gateway_ip}};
+            dead-peer-detection;
+            external-interface {{wan_interface}};
+        }
+    }
+{% endfor %}
+    ipsec {
+        proposal ipsec_proposal {
+            protocol esp;
+            authentication-algorithm hmac-sha-256-128;
+            lifetime-seconds 3600;
+        }
+        policy ipsec-policy-1 {
+            perfect-forward-secrecy {
+                keys group5;
+            }
+            proposals ipsec_proposal;
+        }
+{% for branch in PEERS %}
+        vpn vpn-to-{{branch}} {
+            bind-interface st0.{{PEERS[branch].vpn_tunnel_interface}};
+            ike {
+                gateway gateway-{{branch}};
+                ipsec-policy ipsec-policy-1;
+            }
+            establish-tunnels immediately;
+        }
+    }
+{% endfor %}
+    screen {
+        ids-option untrust-screen {
+            icmp {
+                ping-death;
+            }
+            ip {
+                source-route-option;
+                tear-drop;
+            }
+            tcp {
+                syn-flood {
+                    alarm-threshold 1024;
+                    attack-threshold 200;
+                    source-threshold 1024;
+                    destination-threshold 2048;
+                    queue-size 2000;
+                    timeout 20;
+                }
+                land;
+            }
+        }
+    }
+    policies {
+        from-zone trust to-zone trust {
+            policy default-permit {
+                match {
+                    source-address any;
+                    destination-address any;
+                    application any;
+                }
+                then {
+                    permit;
+                }
+            }
+        }
+       from-zone trust to-zone untrust {
+            policy default-permit {
+                match {
+                    source-address any;
+                    destination-address any;
+                    application any;
+                }
+                then {
+                    permit;
+                }
+            }
+        }
+    }
+    zones {
+        security-zone trust {
+            tcp-rst;
+            host-inbound-traffic {
+                system-services {
+                    ping;
+                    ssh;
+                   netconf;
+                }
+            }
+            interfaces {
+                {{lan_interface}}.0;
+{% for branch in PEERS %}
+                st0.{{PEERS[branch].vpn_tunnel_interface}};  
+{% endfor %}
+            }
+        }
+        security-zone untrust {
+            screen untrust-screen;
+            host-inbound-traffic {
+                system-services {
+                    ssh;
+                    ping;
+                }
+            }
+            interfaces {
+                {{wan_interface}}.0;
+            }
+        }
+    }
+}
+interfaces {
+    {{wan_interface}} {
+        unit 0 {
+            family inet {
+                address {{HQ.wan_ip}};
+            }
+        }
+    }
+    {{lan_interface}} {
+        unit 0 {
+            family inet {
+                address {{HQ.lan_ip}};
+            }
+        }
+    }
+    fxp0 {
+        unit 0 {
+            family inet {
+                address {{HQ.mgmt_ip}};
+            }
+        }
+    }
+{% for branch in PEERS %}
+    st{{PEERS[branch].vpn_tunnel_interface}} {
+        unit {{PEERS[branch].vpn_tunnel_interface}} {
+            point-to-point;
+            family inet {
+                address {{PEERS[branch].HQ_vpn_tunnel_ip}}/30;
+{% endfor %}
+            }
+        }
+    }
+}
+routing-options {
+    static {
+        route 0.0.0.0/0 next-hop {{HQ.wan_gateway}};
+        route {{HQ.local_lan}} next-hop {{HQ.lan_gateway}}
+{% for branch in PEERS %}
+        route {{PEERS[branch].local_lan}} next-hop st0.{{PEERS[branch].vpn_tunnel_interface}};
+{% endfor %}
+    }
+}
